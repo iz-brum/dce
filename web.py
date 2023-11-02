@@ -1,6 +1,5 @@
 # web.py
 
-from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from time import sleep
@@ -11,15 +10,16 @@ from datetime import date
 from gmail import enviar_email
 from sheets import autenticar, adicionar_valores_na_pagina, criar_nova_pagina, criar_nome_pagina
 from bs4 import BeautifulSoup
-from prettytable import PrettyTable
-import os.path
-from webdriver_manager.chrome import ChromeDriverManager
+from unidecode import unidecode
+from selenium.webdriver.firefox.webdriver import WebDriver
 
 def inicializar_navegador(url):
     MAX_RETRIES = 3
     for i in range(MAX_RETRIES):
         try:
-            browser = webdriver.Firefox()
+            options = webdriver.FirefoxOptions()
+            options.headless = True  # Opcional: execute em modo headless (sem interface gráfica)
+            browser = webdriver.Firefox(options=options)
             browser.get(url)
             sleep(1.5)
             return browser
@@ -32,13 +32,14 @@ def inicializar_navegador(url):
             else:
                 print("Esperando 10 segundos antes de tentar novamente...")
                 sleep(10)
-                
-                
+
 def fechar_navegador(browser):
+    print('\nFechando o navegador...')
     browser.quit()
 
 def obter_dados_do_navegador():
     url = 'http://sjc.salvar.cemaden.gov.br/resources/graficos/interativo/grafico_CEMADEN.php?idpcd=7905&uf=MT'
+    print('Abrindo o navegador em 3...2..1..')
     browser = inicializar_navegador(url)
 
     sleep(2)
@@ -56,7 +57,7 @@ def extrair_dados(tabela):
     soup = BeautifulSoup(tabela.get_attribute('outerHTML'), 'html.parser')
     linhas = soup.find_all('tr')
     dados = []
-
+    print('\nExtraindo os dados...')
     for linha in linhas:
         colunas = linha.find_all('td')
         if len(colunas) > 8:
@@ -72,7 +73,7 @@ def limpar_campo_cidade(browser):
     campo_cidade.clear()
 
 def verificar_enviar_email(dados):
-    valor_limite = 5.0
+    valor_limite = 1.0
     dados_com_excesso = []
 
     for cidade, local, precipitacao in dados:
@@ -81,6 +82,8 @@ def verificar_enviar_email(dados):
 
     if dados_com_excesso:
         enviar_email(dados_com_excesso)
+    else:
+        print(f'Não houve precipitações acima de {valor_limite}mm\n')
 
 def main():
     try:
@@ -99,7 +102,5 @@ def main():
     except Exception as e:
         print(f"Ocorreu um erro: {e}")
 
-
 if __name__ == '__main__':
     main()
-

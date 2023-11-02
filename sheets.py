@@ -1,14 +1,15 @@
 # sheets.py
 
-import os.path
-from google.auth.transport.requests import Request
+import os
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow # pip install google-auth-oauthlib
-from googleapiclient.discovery import build # pip install --upgrade google-api-python-client
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from config import SPREADSHEET_ID, SCOPES, CREDENTIALS_FILE, TOKEN_FILE
-from datetime import datetime, date
-from unidecode import unidecode # pip install unidecode
+from unidecode import unidecode
+from datetime import datetime
+from prettytable import PrettyTable
+from prettytable import ALL
 
 def autenticar():
     creds = None
@@ -34,11 +35,11 @@ def autenticar():
                 with open(TOKEN_FILE, 'w') as token:
                     token.write(creds.to_json())
             except Exception as e:
-                print(f"Erro ao autenticar: {e}")
+                print(f"Erro ao autenticar: {e}\n")
                 creds = None    
     return creds
 
-def adicionar_valores_na_pagina(creds, nome_pagina, novos_valores):  # Adicionado 'nome_pagina' como argumento
+def adicionar_valores_na_pagina(creds, nome_pagina, novos_valores):
     try:
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
@@ -64,7 +65,14 @@ def adicionar_valores_na_pagina(creds, nome_pagina, novos_valores):  # Adicionad
             body=request_body
         ).execute()
 
-        print(f'Valores adicionados e ordenados na página {nome_pagina}: {valores_ordenados}')
+        tabela = PrettyTable()
+        tabela.field_names = ["Cidade", "Estação", "24h (mm)"]
+        tabela.hrules = ALL  # Adicionando linhas horizontais
+        tabela.add_rows(valores_ordenados)
+
+        print(f'Valores adicionados e ordenados na página {nome_pagina}:')
+        print('\nTABELA RELATÓRIO DA CEMADEN:')
+        print(tabela)
     except Exception as e:
         print(f"Ocorreu um erro ao adicionar valores na página: {e}")
 
@@ -92,11 +100,10 @@ def criar_nova_pagina(nome_pagina):
                 body=body
             ).execute()
 
-            print(f'Nova página criada: {nome_pagina}')
+            print(f'Página criada com sucesso!\nNome da página: : {nome_pagina}')
 
         except Exception as e:
-            print(f"Ocorreu um erro ao criar a nova página: {e}")
-
+            print(f"Ocorreu um erro ao criar a página: {e}")
 
 def criar_nome_pagina():
     data_atual = datetime.now()
