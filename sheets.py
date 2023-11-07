@@ -5,6 +5,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from google.auth.transport.requests import Request
 from config import SPREADSHEET_ID, SCOPES, CREDENTIALS_FILE, TOKEN_FILE
 from unidecode import unidecode
 from datetime import datetime
@@ -100,7 +101,7 @@ def criar_nova_pagina(nome_pagina):
                 body=body
             ).execute()
 
-            print(f'Página criada com sucesso!\nNome da página: : {nome_pagina}')
+            print(f'Página criada com sucesso!\nNome da página: : {nome_pagina}\n')
 
         except Exception as e:
             print(f"Ocorreu um erro ao criar a página: {e}")
